@@ -1,4 +1,5 @@
 .DS_Store
-backend/dev/
+# backend
+backend/.dev/
 backend/.DS_Store
 backend/scratch.txt

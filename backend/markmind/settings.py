@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #
+    'rest_framework',
     'api',
 ]
 
@@ -77,7 +79,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'markmind-db-1',
         'USER': 'markmind_admin',
-        'PASSWORD': 'i3cG8D6W09qF1OcsjuDJ',
+        'PASSWORD': 'i3cG8D6W09qF1OcsjuDJ', # 
         'HOST': 'markmind-db-1.cz2sgucoieyk.eu-north-1.rds.amazonaws.com',
         'PORT': '3306',
     }
