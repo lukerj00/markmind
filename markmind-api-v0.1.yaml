@@ -1,0 +1,202 @@
+openapi: 3.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/MARKMIND14/markmind-api-v0/1.0.0
+info:
+  title: MarkMind API v0
+  version: "1.0.0"
+  contact:
+    email: markmind14@gmail.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: teachers
+    description: Operations available to teachers
+  - name: students
+    description: Operations available to students
+  - name: navigation
+    description: Endpoints associated with distinct webpages
+  - name: dynamic
+    description: Endpoints used for dynamic updates on the current webpage
+paths:
+  /api/teacher/dashboard:
+    get:
+      tags:
+        - teachers
+        # - navigation
+      summary: retreive dashboard data for a teacher
+      description: fetches summary information, notifications, and other data needed to render the teacher's dashboard
+      operationId: get_dashboard_data
+      # parameters:
+      #   - in: query
+      #     name: searchString
+      #     description: pass an optional search string for looking up inventory
+      #     required: false
+      #     schema:
+      #       type: string
+      #   - in: query
+      #     name: skip
+      #     description: number of records to skip for pagination
+      #     schema:
+      #       type: integer
+      #       format: int32
+      #       minimum: 0
+      #   - in: query
+      #     name: limit
+      #     description: maximum number of records to return
+      #     schema:
+      #       type: integer
+      #       format: int32
+      #       minimum: 0
+      #       maximum: 50
+      responses:
+        '200':
+          description: successfully retrieved data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeacherDashboardData'
+        '404':
+          description: resource not found
+    # post:
+    #   tags:
+    #   - developers
+    #   summary: adds an inventory item
+    #   operationId: addInventory
+    #   description: Adds an item to the system
+    #   responses:
+    #     '201':
+    #       description: item created
+    #     '400':
+    #       description: 'invalid input, object invalid'
+    #     '409':
+    #       description: an existing item already exists
+    #   requestBody:
+    #     content:
+    #       application/json:
+    #         schema:
+    #           $ref: '#/components/schemas/InventoryItem'
+    #     description: Inventory item to add
+  /api/teacher/classes:
+    get:
+      tags:
+        - teachers
+      summary: fetch all available classes
+      description: fetches class list to choose from when setting assingnment
+      operationId: fetch_classes
+      responses:
+        '200':
+          description: list of classes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Class'
+  /api/teacher/assignments:
+    post:
+      tags: 
+      - teachers
+      summary: create new assignment
+      description: create a new assignment for a specific class, specifying both the question and mark scheme
+      operationId: create_assignment
+      responses:
+        '201':
+          description: assignment created
+    get:
+      tags:
+      - teachers
+      summary: fetch all assignments
+      description: fetch the full list of previously created assignments and their associated data
+      operationId: fetch_assignments
+      responses:
+        '200':
+          description: a list of assignments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assignment'
+components:
+  schemas:
+    TeacherDashboardData:
+      type: object
+      properties:
+        summary_info:
+          type: object
+          properties:
+            total_classes:
+              type: integer
+            total_assignments:
+              type: integer
+            upcoming_deadlines:
+              type: integer
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+          # ...
+          
+    Class:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        
+    Assignment:
+      type: object
+      properties:
+        class_id:
+          type: integer
+        questions:
+          type: array
+          items:
+            type: string
+        mark_schemes:
+          type: array
+          items:
+            type: string
+        
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+    #       type: string
+    #       format: uuid
+    #       example: d290f1ee-6c54-4b01-90e6-d701748f0851
+    #     name:
+    #       type: string
+    #       example: Widget Adapter
+    #     releaseDate:
+    #       type: string
+    #       format: date-time
+    #       example: '2016-08-29T09:12:33.001Z'
+    #     manufacturer:
+    #       $ref: '#/components/schemas/Manufacturer'
+    # Manufacturer:
+    #   required:
+    #     - name
+    #   properties:
+    #     name:
+    #       type: string
+    #       example: ACME Corporation
+    #     homePage:
+    #       type: string
+    #       format: url
+    #       example: 'https://www.acme-corp.com'
+    #     phone:
+    #       type: string
+    #       example: 408-867-5309
+    #   type: object
