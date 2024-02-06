@@ -253,7 +253,6 @@ paths:
       #       minimum: 0
       #       maximum: 50
   
-# components (teacher and student)
 components:
   schemas:
     TeacherDashboardData:
@@ -360,6 +359,10 @@ components:
           type: string
         message:
           type: string
+      required:
+        - id
+        - title
+        - message
     #       type: string
     #       format: uuid
     #       example: d290f1ee-6c54-4b01-90e6-d701748f0851
