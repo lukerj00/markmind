@@ -13,22 +13,223 @@ info:
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 tags:
   - name: teachers
-    description: Operations available to teachers
+    description: operations available to teachers
   - name: students
-    description: Operations available to students
-  - name: navigation
-    description: Endpoints associated with distinct webpages
-  - name: dynamic
-    description: Endpoints used for dynamic updates on the current webpage
+    description: operations available to students
+
 paths:
+# teacher mode
   /api/teacher/dashboard:
     get:
       tags:
         - teachers
-        # - navigation
       summary: retreive dashboard data for a teacher
       description: fetches summary information, notifications, and other data needed to render the teacher's dashboard
-      operationId: get_dashboard_data
+      operationId: get_teacher_dashboard
+      responses:
+        '200':
+          description: successfully retrieved data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeacherDashboardData'
+        '404':
+          description: resource not found
+      
+  /api/teacher/classes:
+    get:
+      tags:
+        - teachers
+      summary: fetch all available teacher classes
+      description: fetches teacher class list to choose from when setting assingnment
+      operationId: get_teacher_classes
+      responses:
+        '200':
+          description: list of classes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Class'
+        '204':
+          description: no classes available
+        '500':
+          description: internal server error
+          
+  /api/teacher/assignments:
+    post:
+      tags: 
+      - teachers
+      summary: create a new assignment
+      description: create a new assignment for a specific class, specifying questions and mark schemes
+      operationId: create_assignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Assignment'
+      responses:
+        '201':
+          description: assignment created
+        '400':
+          description: invalid request format or missing required fields
+        '404':
+          description: the specified class does not exist
+        '500':
+          description: internal server error
+    get:
+      tags:
+      - teachers
+      summary: fetch all created assignments
+      description: fetch the full list of  assignments set by the teacher and their associated data, filtering as required
+      operationId: get_teacher_assignments
+      parameters: 
+        - in: query
+          name: isCompleted
+          schema:
+            type: boolean
+          required: false
+          description: optional filter for assignments that are completed or not
+        - in: query
+          name: classId
+          schema:
+            type: string
+          required: false
+          description: optional filter for assignments for a specific class
+        # - in: query
+        #   name: dueDate
+        #   schema:
+        #     type: string
+        #     format: date
+        #   required: false
+        #   description: optional filter for assignments due by a certain date
+      responses:
+        '200':
+          description: a list of assignments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assignment'
+        '400':
+          description: invalid query parameters
+        '404':
+          description: no assignments found matching query critera
+        '500':
+          description: internal server error
+
+# student
+  /api/student/dashboard:
+    get:
+      tags:
+        - students
+      summary: retreive dashboard data for a student
+      description: fetches summary information, notifications, and other data needed to render the student's dashboard
+      operationId: get_student_dashboard
+      responses:
+        '200':
+          description: successfully retrieved data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudentDashboardData'
+        '404':
+          description: resource not found
+  
+  /api/student/classes:
+    get:
+      tags:
+        - students
+      summary: fetch all available student classes
+      description: fetches student class list to choose from when viewing assingnment
+      operationId: get_student_classes
+      responses:
+        '200':
+          description: list of classes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Class'
+        '204':
+          description: no classes available
+        '500':
+          description: internal server error
+  
+  /api/student/assignments:
+    post:
+      tags: 
+      - teachers
+      summary: submit an assignment
+      description: submit an answer to an assignment for a specific class
+      operationId: submit_assignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Submission'
+              
+      responses:
+        '201':
+          description: assignment created
+        '400':
+          description: invalid request format or missing required fields
+        '404':
+          description: the specified class does not exist
+        '500':
+          description: internal server error
+    get:
+      tags:
+      - students
+      summary: fetch all student assignments
+      description: fetch the full list of assignments set for the student and their associated data, filtering as required
+      operationId: get_student_assignments
+      parameters: 
+        - in: query
+          name: isDue
+          schema:
+            type: string
+            format: date
+          required: false
+          description: optional filter for assignments due by a certain date 
+        - in: query
+          name: classId
+          schema:
+            type: string
+          required: false
+          description: optional filter for assignments for a specific class
+        # - in: query
+        #   name: dueDate
+        #   schema:
+        #     type: string
+        #     format: date
+        #   required: false
+        #   description: optional filter for assignments due by a certain date
+      responses:
+        '200':
+          description: a list of assignments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assignment'
+        '400':
+          description: invalid query parameters
+        '404':
+          description: no assignments found matching query critera
+        '500':
+          description: internal server error
+  
       # parameters:
       #   - in: query
       #     name: searchString
@@ -51,97 +252,52 @@ paths:
       #       format: int32
       #       minimum: 0
       #       maximum: 50
-      responses:
-        '200':
-          description: successfully retrieved data
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TeacherDashboardData'
-        '404':
-          description: resource not found
-    # post:
-    #   tags:
-    #   - developers
-    #   summary: adds an inventory item
-    #   operationId: addInventory
-    #   description: Adds an item to the system
-    #   responses:
-    #     '201':
-    #       description: item created
-    #     '400':
-    #       description: 'invalid input, object invalid'
-    #     '409':
-    #       description: an existing item already exists
-    #   requestBody:
-    #     content:
-    #       application/json:
-    #         schema:
-    #           $ref: '#/components/schemas/InventoryItem'
-    #     description: Inventory item to add
-  /api/teacher/classes:
-    get:
-      tags:
-        - teachers
-      summary: fetch all available classes
-      description: fetches class list to choose from when setting assingnment
-      operationId: fetch_classes
-      responses:
-        '200':
-          description: list of classes
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Class'
-  /api/teacher/assignments:
-    post:
-      tags: 
-      - teachers
-      summary: create new assignment
-      description: create a new assignment for a specific class, specifying both the question and mark scheme
-      operationId: create_assignment
-      responses:
-        '201':
-          description: assignment created
-    get:
-      tags:
-      - teachers
-      summary: fetch all assignments
-      description: fetch the full list of previously created assignments and their associated data
-      operationId: fetch_assignments
-      responses:
-        '200':
-          description: a list of assignments
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Assignment'
+  
+# components (teacher and student)
 components:
   schemas:
     TeacherDashboardData:
       type: object
       properties:
-        summary_info:
+        summaryInfo:
           type: object
           properties:
-            total_classes:
+            totalTeacherClasses:
               type: integer
-            total_assignments:
+            totalTeacherAssignments:
               type: integer
-            upcoming_deadlines:
+            upcomingTeacherDeadlines:
               type: integer
         notifications:
           type: array
           items:
             $ref: '#/components/schemas/Notification'
           # ...
-          
+      required: 
+        - summaryInfo
+        - notifications
+        
+    StudentDashboardData:
+      type: object
+      properties:
+        summaryInfo:
+          type: object
+          properties:
+            totalStudentClasses:
+              type: integer
+            totalStudentAssignments:
+              type: integer
+            upcomingStudentDeadlines:
+              type: integer
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+          # ...
+      required: 
+        - summaryInfo
+        - notifications
+        
     Class:
       type: object
       properties:
@@ -149,20 +305,51 @@ components:
           type: integer
         name:
           type: string
+      required: 
+        - id
+        - name
         
     Assignment:
       type: object
       properties:
-        class_id:
+        assignmentId:
+          type: integer
+        classId:
           type: integer
         questions:
           type: array
           items:
             type: string
-        mark_schemes:
+            description: list of questions
+        markSchemes:
           type: array
           items:
             type: string
+            description: list of mark schemes
+      required:
+        - assignmentId
+        - classId
+        - questions
+        - markSchemes
+        
+    Submission:
+      type: object
+      properties:
+        assignmentId:
+          type: integer
+          description: unique identifier of the assignment answered
+        classId:
+          type: integer
+          description: unique identifier of the class for which the assignment is created
+        answer:
+          type: array
+          items:
+            type: string
+          description: submitted answer to the question set
+      required:
+        - assignmentId
+        - classId
+        - answer
         
     Notification:
       type: object
