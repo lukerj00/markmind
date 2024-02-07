@@ -1,5 +1,13 @@
 from django.contrib import admin
-from .models import Test
+from django.apps import apps
+from .models import *
 
-# Register your models here.
-admin.site.register(Test)
+api_models = apps.get_app_config('api').get_models()
+
+# register all models on admin site
+for model in api_models:
+    admin.site.register(model)
+
+### testing ###
+# admin.site.register(Test)
+
