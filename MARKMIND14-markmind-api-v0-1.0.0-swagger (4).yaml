@@ -1,10 +1,13 @@
 openapi: 3.0.0
 servers:
   # Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/MARKMIND14/markmind-api-v0/1.0.0
+  - url: https://virtserver.swaggerhub.com/MARKMIND14/markmind-api-v0/1.0.0
+    description: SwaggerHub API Auto Mocking
+  - url: http://localhost:3306/api/v0
+    description: local development server
 info:
   title: MarkMind API v0
+  description: MarkMind is an EdTech application developed to help save teachers time when marking. By leveraging Large Language Models (LLMs) tuned for this process, our application provides valuable feedback to teachers on student assignments, allowing them to spend more time where it matters - interacting with students. This application is in early development, using a Django backend and Flutter frontend.
   version: "1.0.0"
   contact:
     email: markmind14@gmail.com
@@ -19,7 +22,7 @@ tags:
 
 paths:
 # teacher mode
-  /api/teacher/dashboard:
+  /teacher/dashboard:
     get:
       tags:
         - teachers
@@ -38,33 +41,33 @@ paths:
         '404':
           description: resource not found
       
-  /api/teacher/classes:
+  /teacher/coursees:
     get:
       tags:
         - teachers
-      summary: fetch all available teacher classes
-      description: fetches teacher class list to choose from when setting assingnment
-      operationId: get_teacher_classes
+      summary: fetch all available teacher coursees
+      description: fetches teacher course list to choose from when setting assingnment
+      operationId: get_teacher_coursees
       responses:
         '200':
-          description: list of classes
+          description: list of coursees
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Class'
+                  $ref: '#/components/schemas/Course'
         '204':
-          description: no classes available
+          description: no coursees available
         '500':
           description: internal server error
           
-  /api/teacher/assignments:
+  /teacher/assignments:
     post:
       tags: 
       - teachers
       summary: create a new assignment
-      description: create a new assignment for a specific class, specifying questions and mark schemes
+      description: create a new assignment for a specific course, specifying questions and mark schemes
       operationId: create_assignment
       requestBody:
         required: true
@@ -78,7 +81,7 @@ paths:
         '400':
           description: invalid request format or missing required fields
         '404':
-          description: the specified class does not exist
+          description: the specified course does not exist
         '500':
           description: internal server error
     get:
@@ -95,11 +98,11 @@ paths:
           required: false
           description: optional filter for assignments that are completed or not
         - in: query
-          name: classId
+          name: courseId
           schema:
             type: string
           required: false
-          description: optional filter for assignments for a specific class
+          description: optional filter for assignments for a specific course
         # - in: query
         #   name: dueDate
         #   schema:
@@ -124,7 +127,7 @@ paths:
           description: internal server error
 
 # student
-  /api/student/dashboard:
+  /student/dashboard:
     get:
       tags:
         - students
@@ -143,33 +146,33 @@ paths:
         '404':
           description: resource not found
   
-  /api/student/classes:
+  /student/coursees:
     get:
       tags:
         - students
-      summary: fetch all available student classes
-      description: fetches student class list to choose from when viewing assingnment
-      operationId: get_student_classes
+      summary: fetch all available student coursees
+      description: fetches student course list to choose from when viewing assingnment
+      operationId: get_student_coursees
       responses:
         '200':
-          description: list of classes
+          description: list of coursees
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Class'
+                  $ref: '#/components/schemas/Course'
         '204':
-          description: no classes available
+          description: no coursees available
         '500':
           description: internal server error
   
-  /api/student/assignments:
+  /student/assignments:
     post:
       tags: 
       - teachers
       summary: submit an assignment
-      description: submit an answer to an assignment for a specific class
+      description: submit an answer to an assignment for a specific course
       operationId: submit_assignment
       requestBody:
         required: true
@@ -184,7 +187,7 @@ paths:
         '400':
           description: invalid request format or missing required fields
         '404':
-          description: the specified class does not exist
+          description: the specified course does not exist
         '500':
           description: internal server error
     get:
@@ -202,11 +205,11 @@ paths:
           required: false
           description: optional filter for assignments due by a certain date 
         - in: query
-          name: classId
+          name: courseId
           schema:
             type: string
           required: false
-          description: optional filter for assignments for a specific class
+          description: optional filter for assignments for a specific course
         # - in: query
         #   name: dueDate
         #   schema:
@@ -261,7 +264,7 @@ components:
         summaryInfo:
           type: object
           properties:
-            totalTeacherClasses:
+            totalTeacherCoursees:
               type: integer
             totalTeacherAssignments:
               type: integer
@@ -279,10 +282,10 @@ components:
     StudentDashboardData:
       type: object
       properties:
-        summaryInfo:
+        teacherSummaryInfo:
           type: object
           properties:
-            totalStudentClasses:
+            totalStudentCoursees:
               type: integer
             totalStudentAssignments:
               type: integer
@@ -294,10 +297,10 @@ components:
             $ref: '#/components/schemas/Notification'
           # ...
       required: 
-        - summaryInfo
+        - teacherSummaryInfo
         - notifications
         
-    Class:
+    Course:
       type: object
       properties:
         id:
@@ -311,9 +314,9 @@ components:
     Assignment:
       type: object
       properties:
-        assignmentId:
+        id:
           type: integer
-        classId:
+        courseId:
           type: integer
         questions:
           type: array
@@ -326,28 +329,32 @@ components:
             type: string
             description: list of mark schemes
       required:
-        - assignmentId
-        - classId
+        - id
+        - courseId
         - questions
         - markSchemes
         
     Submission:
       type: object
       properties:
+        id:
+          type: integer
+          description: unique identifier of the submission
         assignmentId:
           type: integer
           description: unique identifier of the assignment answered
-        classId:
+        courseId:
           type: integer
-          description: unique identifier of the class for which the assignment is created
+          description: unique identifier of the course for which the assignment is created
         answer:
           type: array
           items:
             type: string
           description: submitted answer to the question set
       required:
+        - id
         - assignmentId
-        - classId
+        - courseId
         - answer
         
     Notification:
