@@ -13,8 +13,8 @@ class Notification(models.Model):
         return self.title
 
 class TeacherDashboardData(models.Model):
-    summary_info = models.OneToOneField(TeacherSummaryInfo, on_delete=models.CASCADE)
-    notifications = models.ManyToManyField(Notification)
+    summary_info = models.OneToOneField(TeacherSummaryInfo, on_delete=models.CASCADE, related_name='teacher_dashboard') # specify reverse relation (related_name) to avoid conflicts
+    notifications = models.ManyToManyField(Notification, related_name='teacher_dashboards') # specify reverse relation (related_name) to avoid conflicts
 
 class StudentSummaryInfo(models.Model):
     total_student_classes = models.IntegerField()
@@ -22,8 +22,8 @@ class StudentSummaryInfo(models.Model):
     upcoming_student_deadlines = models.IntegerField()
 
 class StudentDashboardData(models.Model):
-    summary_info = models.OneToOneField(StudentSummaryInfo, on_delete=models.CASCADE)
-    notifications = models.ManyToManyField(Notification)
+    summary_info = models.OneToOneField(StudentSummaryInfo, on_delete=models.CASCADE, related_name='student_dashboard') # specify reverse relation (related_name) to avoid conflicts
+    notifications = models.ManyToManyField(Notification, related_name='student_dashboards') # specify reverse relation (related_name) to avoid conflicts
 
 class Course(models.Model):
     name = models.CharField(max_length=255)

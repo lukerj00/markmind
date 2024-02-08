@@ -1,7 +1,7 @@
 # from django.shortcuts import render
 from django.http import JsonResponse
-from .models import TeacherDashboardData, Course, Assignment, Test
-from .serializers import TeacherDashboardDataSerializer, CourseSerializer, AssignmentSerializer, TestSerializer
+from .models import TeacherDashboardData, Course, Assignment, StudentDashboardData, Test
+from .serializers import TeacherDashboardDataSerializer, CourseSerializer, AssignmentSerializer, StudentDashboardDataSerializer, TestSerializer
 from rest_framework.decorators import api_view # fnc-based
 from rest_framework.views import APIView # class-based
 from rest_framework.response import Response
@@ -47,10 +47,35 @@ class TeacherAssignmentsAPIView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class StudentDashboardAPIView(APIView):
+    def get(self, request):
+        try:
+            dashboard_data = StudentDashboardData.objects.all() # # use .get(student=request.user) at some point when users are implemented
+            serializer = StudentDashboardDataSerializer(dashboard_data)
+            return Response(serializer.data)
+        except StudentDashboardData.DoesNotExist:
+            return Response({"message": "student dashboard data not found."}, status=status.HTTP_404_NOT_FOUND)
 
-
-
-
+class StudentCoursesAPIView(APIView):
+    def get(self, request):
+        try:
+            courses = Course.objects.all()
+            serializer = CourseSerializer(courses, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Course.DoesNotExist:
+            return Response({"message": "courses not found"}, status=status.HTTP_404_NOT_FOUND)
+    # def get(self, request):
+    #     # implement - fetch student based on request user (customize as needed)
+    #     student = Student.objects.filter(user=request.user).first()
+    #     if not student:
+    #         return Response({"message": "Student not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+    #     courses = student.courses.all()
+    #     if courses:
+    #         serializer = CourseSerializer(courses, many=True)
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     else:
+    #         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
