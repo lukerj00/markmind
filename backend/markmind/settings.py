@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-e+yf905h8d5*dl0+$r!w8xd)f(mf4tw@wtxfki*s=#7-k-hf4+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False # True (change to false for 'production' - aws)
 
 ALLOWED_HOSTS = []
 
@@ -84,26 +84,26 @@ WSGI_APPLICATION = 'markmind.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'markmind_db_2',
-        'USER': 'root',
-        'PASSWORD': 'root_pw_!£%',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-}
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'markmind-db-1',
-#         'USER': 'markmind_admin',
-#         'PASSWORD': 'i3cG8D6W09qF1OcsjuDJ', # 
-#         'HOST': 'markmind-db-1.cz2sgucoieyk.eu-north-1.rds.amazonaws.com',
+#         'NAME': 'markmind_db_2',
+#         'USER': 'root',
+#         'PASSWORD': 'root_pw_!£%',
+#         'HOST': 'localhost',
 #         'PORT': '3306',
 #     }
 # }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'markmind-db-1',
+        'USER': 'markmind_admin',
+        'PASSWORD': 'i3cG8D6W09qF1OcsjuDJ', # 
+        'HOST': 'markmind-db-1.cz2sgucoieyk.eu-north-1.rds.amazonaws.com',
+        'PORT': '3306',
+    }
+}
 
 
 # Password validation

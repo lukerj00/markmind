@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TeacherDashboardData, Notification, TeacherSummaryInfo, Course, Assignment, StudentSummaryInfo, StudentDashboardData
+from .models import TeacherDashboardData, Notification, TeacherSummaryInfo, Course, Assignment, StudentSummaryInfo, StudentDashboardData, Submission
 from .models import Test
 
 class NotificationSerializer(serializers.ModelSerializer):
@@ -42,6 +42,12 @@ class StudentDashboardDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentDashboardData
         fields = ['summary_info', 'notifications']
+
+class SubmissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Submission
+        fields = ['id', 'assignment', 'course', 'answers']
+        read_only_fields = ('id',)
 
 
 

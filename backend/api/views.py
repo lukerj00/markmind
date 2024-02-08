@@ -1,7 +1,8 @@
 # from django.shortcuts import render
+from datetime import datetime
 from django.http import JsonResponse
 from .models import TeacherDashboardData, Course, Assignment, StudentDashboardData, Test
-from .serializers import TeacherDashboardDataSerializer, CourseSerializer, AssignmentSerializer, StudentDashboardDataSerializer, TestSerializer
+from .serializers import TeacherDashboardDataSerializer, CourseSerializer, AssignmentSerializer, StudentDashboardDataSerializer, SubmissionSerializer, TestSerializer
 from rest_framework.decorators import api_view # fnc-based
 from rest_framework.views import APIView # class-based
 from rest_framework.response import Response
@@ -64,6 +65,35 @@ class StudentCoursesAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Course.DoesNotExist:
             return Response({"message": "courses not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+class StudentAssignmentSubmissionAPIView(APIView):
+    def post(self, request):
+        serializer = SubmissionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save() # save to db
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class StudentAssignmentsAPIView(APIView): # new class as different resource
+    def get(self, request):
+        queryset = Assignment.objects.all()
+        course_id = request.query_params.get('courseId')
+        # is_due = request.query_params.get('isDue')
+
+        if course_id:
+            queryset = queryset.filter(course__id=course_id) # double underscore for foreign key field (course is a foreign key field on the assignment model, and __ performs a join)
+        # implement is_due filter at some point
+        # if is_due:
+        #     try:
+        #         is_due_date = datetime.strptime(is_due, '%d/%m/%Y').date()
+        #         queryset = queryset.filter(due_date__lte=is_due_date) # less than or equal to due date
+        #     except ValueError:
+        #         # incorrect date format
+        #         return Response({"error": "incorrect date format. should be 'DD/MM/YYYY'."}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = AssignmentSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     # def get(self, request):
     #     # implement - fetch student based on request user (customize as needed)
     #     student = Student.objects.filter(user=request.user).first()
