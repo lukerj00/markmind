@@ -1,6 +1,16 @@
 .DS_Store
+.elasticbeanstalk/
+backend/.vscode/launch.json
+backend/.vscode/settings.json
 # backend
 backend/.dev/
 backend/.DS_Store
 backend/scratch.txt
 backend/scripts/
+backend/requirements.txt
+backend/markmind.zip
+backend/.ebextensions/
+backend/.elasticbeanstalk/
+backend/markmind/__pycache__/
+backend/markmind.zip
+backend/plots.py

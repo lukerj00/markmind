@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Django",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/manage.py",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "${workspaceFolder}/backend/markmind/settings.py",
+                "OPENAI_API_KEY": "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"
+            },
+            "args": [
+                "runserver"
+            ],
+            "django": true,
+            "python": "${workspaceFolder}/backend/.dev/bin/python",
+            "autoStartBrowser": false
+        }
+    ]
+}
