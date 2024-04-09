@@ -1,0 +1,1286 @@
+openapi: 3.0.0
+info:
+  title: MarkMind EdTech Platform API
+  version: 1.0.0
+  description: API for interacting with the MarkMind EdTech platform for both teachers and students.
+
+servers:
+  - url: https://api.markmind_url.com/
+
+paths:
+  /auth/register:
+   post:
+     summary: Register a new user
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/UserRegistration'
+     responses:
+       '201':
+         description: User registered successfully
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/UserRegistrationResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse
+
+  /auth/login:
+   post:
+     summary: Authenticate a user and generate an authentication token
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/UserLogin'
+     responses:
+       '200':
+         description: Authentication successful
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/AuthenticationResponse'
+
+  /auth/change-password:
+   post:
+     summary: Change user's password
+     security:
+       - bearerAuth: []
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/ChangePasswordResponse'
+     responses:
+       '200':
+         description: Password changed successfully
+
+  /auth/logout:
+    post:
+      summary: Logout user and invalidate authentication token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+  
+  /teachers/{teacherId}/profile:
+    get:
+      summary: Get teacher profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+      responses:
+        '200':
+          description: Teacher profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherProfile'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Teacher not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update teacher profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+      requestBody:
+        required: true
+        content:
+          multipart/form-data: # application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTeacherProfileRequest'
+      responses:
+        '200':
+          description: Teacher profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherProfileResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Teacher not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /teachers/{teacherId}/dashboard:
+    get:
+      summary: Get the teacher's dashboard
+      description: Retrieve information for the teacher's dashboard.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+      responses:
+        '200':
+          description: Dashboard data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherDashboardResponse'
+
+  /teachers/{teacherId}/assignments/create:
+    get:
+      summary: Get the assignment creation page
+      description: Retrieve fields necessary for creating a new assignment.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+      responses:
+        '200':
+          description: Assignment creation fields retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentCreationFieldsResponse'
+
+  /teachers/{teacherId}/assignments:
+    post:
+      summary: Submit a new assignment
+      description: Create a new assignment with details.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId 
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAssignmentRequest'
+      responses:
+        '201':
+          description: Assignment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentResponse'
+    put:
+      summary: Update an existing assignment
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAssignmentRequest'
+      responses:
+        '200':
+          description: Assignment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentResponse'
+        '404':
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete an assignment
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+        - in: query
+          name: assignmentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the assignment to delete
+      responses:
+        '204':
+          description: Assignment deleted successfully
+        '404':
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /teachers/{teacherId}/classrooms:
+    get:
+      summary: View classrooms managed by the teacher
+      description: Retrieve a list of classrooms that the teacher is managing.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+      responses:
+        '200':
+          description: List of classrooms retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassroomSummary'
+
+  /teachers/{teacherId}/classrooms/{classroomId}/assignments:
+    get:
+      summary: View assignments for a classroom
+      description: Retrieve a list of assignments for a specific classroom.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+        - in: path
+          name: classroomId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the classroom
+      responses:
+        '200':
+          description: List of assignments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssignmentDetails' # AssignmentSummary'
+
+  /teachers/{teacherId}/assignments/{assignmentId}/submissions: # eg /teachers/123/assignments/456/submissions?page=2&pageSize=10 ( {url_path}?{query_key}={query_value}&{query_key}={query_value} )
+    get:
+      summary: View submissions for an assignment
+      description: Retrieve a paginated list of submissions for a specific assignment.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+        - in: path
+          name: assignmentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the assignment
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number of the results to retrieve
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 10
+          description: Number of submissions to retrieve per page
+      responses:
+        '200':
+          description: List of submissions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object # response object which contains two properties, data and meta
+                properties:
+                  data:
+                    type: array # array of SubmissionSummary objects
+                    items:
+                      $ref: '#/components/schemas/SubmissionSummary'
+                  meta: # pagination metadata info
+                    type: object
+                    properties:
+                      currentPage:
+                        type: integer
+                      totalPages:
+                        type: integer
+                      totalSubmissions:
+                        type: integer
+        '400':
+          description: Bad request (ie past due date / missing fields)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /teachers/{teacherId}/submissions/{submissionId}:
+    get:
+      summary: View a student's submission
+      description: Retrieve details of a student's submission including any AI-generated feedback.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+        - in: path
+          name: submissionId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the submission
+      responses:
+        '200':
+          description: Submission details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionDetailsResponse'
+
+  /teachers/{teacherId}/submissions/{submissionId}/feedback:
+    get:
+      summary: Get AI-generated feedback for a submission
+      description: Retrieve AI-generated feedback on various categories like punctuation for a submission.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+        - in: path
+          name: submissionId
+          required: true
+          schema:            
+            type: integer
+          description: Unique identifier of the submission
+        - in: query
+          name: category
+          required: true
+          schema:
+            type: string
+          description: The feedback category to filter by, e.g., punctuation, grammar, etc.
+      responses:
+        '200':
+          description: Feedback retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIFeedbackResponse'
+        '404':
+          description: Feedback not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse
+
+  /teachers/{teacherId}/submissions/{submissionId}/grade:
+    post:
+      summary: Input final grade and feedback for a submission
+      description: Submit final grade and feedback for a student's submission.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+        - in: path
+          name: submissionId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the submission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeInputRequest'
+      responses:
+        '200':
+          description: Grade and feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeResponse'
+
+  # Student stuff
+  /students/{studentId}/profile:
+    get:
+      summary: Get student profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the student
+      responses:
+        '200':
+          description: Student profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentProfile'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update student profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the student
+      requestBody:
+        required: true
+        content:
+          multipart/form-data: # application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStudentProfileRequest'
+      responses:
+        '200':
+          description: Student profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentProfileResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /students/{studentId}/dashboard:
+    get:
+      summary: Get the student's dashboard
+      description: Retrieve information for the student's dashboard, including upcoming assignments and recent grades.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the student
+      responses:
+        '200':
+          description: Dashboard data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentDashboardResponse'
+
+  /students/{studentId}/classrooms:
+    get:
+      summary: View classrooms the student is enrolled in
+      description: Retrieve a list of classrooms the student is enrolled in.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the student
+      responses:
+        '200':
+          description: List of classrooms retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassroomSummary'
+
+  /students/{studentId}/classrooms/{classroomId}/assignments:
+    get:
+      summary: View assignments for a specific classroom
+      description: Retrieve a list of assignments for the student in a specific classroom.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the student
+        - in: path
+          name: classroomId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the classroom
+      responses:
+        '200':
+          description: List of assignments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssignmentDetails'
+
+  /students/{studentId}/assignments/{assignmentId}:
+    get:
+      summary: View details of a specific assignment
+      description: Retrieve details of a specific assignment, including description and due date.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the student
+        - in: path
+          name: assignmentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the assignment
+      responses:
+        '200':
+          description: Assignment details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentDetails'
+
+  /students/{studentId}/assignments/{assignmentId}/submissions:
+    post:
+      summary: Submit an assignment
+      description: Allows a student to submit their completed assignment (including file uploads).
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the student
+        - in: path
+          name: assignmentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the assignment
+      requestBody:
+        required: true
+        content:
+          multipart/form-data: # application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentSubmissionRequest'
+      responses:
+        '201':
+          description: Assignment submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentSubmissionResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /students/{studentId}/grades:
+    get:
+      summary: View all grades for the student
+      description: Retrieve a summary of all grades the student has received across all enrolled classrooms.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the student
+        - in: query
+          name: assignmentTitle
+          schema:
+            type: string
+          description: Filter grades by assignment title.
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+          description: Filter grades by start date (inclusive).
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+          description: Filter grades by end date (inclusive).
+      responses:
+        '200':
+          description: Grades summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GradeSummary'
+
+  /students/{studentId}/classrooms/{classroomId}/grades:
+    get:
+      summary: View grades for a specific classroom
+      description: Retrieve a list of grades for assignments within a specific classroom.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the student
+        - in: path
+          name: classroomId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the classroom
+        - in: query
+          name: assignmentTitle
+          schema:
+            type: string
+          description: Filter grades by assignment title.
+        - in: query
+          name: dateAssigned
+          schema:
+            type: string
+            format: date
+          description: Filter grades by date assigned (inclusive).
+        - in: query
+          name: dueDate
+          schema:
+            type: string
+            format: date
+          description: Filter grades by due date (inclusive).
+      responses:
+        '200':
+          description: Classroom grades retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassroomGradeSummary'
+
+  /students/{studentId}/assignments/{assignmentId}/grade:
+    get:
+      summary: View grade for a specific assignment
+      description: Retrieve the grade for a specific assignment.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the student
+        - in: path
+          name: assignmentId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the assignment
+      responses:
+        '200':
+          description: Assignment grade retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentGrade'
+
+components:
+  securitySchemes:
+   bearerAuth:
+     type: http
+     scheme: bearer # ie bearer token should be included in the Authorization header using the format: Bearer <token>
+
+  schemas:
+    User:
+     type: object
+     properties:
+       userId:
+         type: integer
+       firstName:
+         type: string
+       lastName:
+         type: string
+       email:
+         type: string
+       role:
+         type: string
+    
+    UserRegistrationResponse:
+     type: object
+     properties:
+       firstName:
+         type: string
+       lastName:
+         type: string
+       email:
+         type: string
+       password:
+         type: string
+       role:
+         type: string
+         enum: [student, teacher]
+     required:
+       - firstName
+       - lastName
+       - email
+       - password
+       - role
+
+    UserLogin:
+     type: object
+     properties:
+       email:
+         type: string
+       password:
+         type: string
+     required:
+       - email
+       - password
+
+    AuthenticationResponse:
+     type: object
+     properties:
+       token:
+         type: string
+       userId:
+         type: integer
+
+    ChangePasswordResponse:
+     type: object
+     properties:
+       oldPassword:
+         type: string
+       newPassword:
+         type: string
+     required:
+       - oldPassword
+       - newPassword
+
+    TeacherDashboardResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        classSummaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeacherClassSummary'
+
+    Notification:
+      type: object
+      properties:
+        notificationId:
+          type: integer
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        isRead:
+          type: boolean
+
+    TeacherClassSummary:
+      type: object
+      properties:
+        classId:
+          type: integer
+        averageGrade:
+          type: number
+          format: float
+        totalStudents:
+          type: integer
+        totalSubmissions:
+          type: integer
+        recentSubmissions:
+          type: integer
+        attendanceRate:
+          type: number
+          format: float
+        lateAssignments:
+          type: integer
+
+    AssignmentCreationFieldsResponse:
+      type: object
+      properties:
+        fields:
+          type: array
+          items:
+            type: string
+
+    NewAssignmentRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+
+    UpdateAssignmentRequest:
+      type: object
+      properties:
+        assignmentId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+      required:
+        - assignmentId
+
+    AssignmentResponse:
+      type: object
+      properties:
+        assignmentId:
+          type: integer
+        message:
+          type: string
+
+    ClassroomSummary:
+      type: object
+      properties:
+        classroomId:
+          type: integer
+        name:
+          type: string
+        yearGroup:
+          type: string
+
+    AssignmentSummary:
+      type: object
+      properties:
+        assignmentId:
+          type: integer
+        title:
+          type: string
+        dueDate:
+          type: string
+          format: date
+
+    SubmissionSummary:
+      type: object
+      properties:
+        submissionId:
+          type: integer
+        studentId:
+          type: integer
+        submittedAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [submitted, not_submitted, late]
+
+    SubmissionDetailsResponse:
+      type: object
+      properties:
+        submissionId:
+          type: integer
+        assignmentId:
+          type: integer
+        studentId:
+          type: integer
+        content:
+          type: string
+        filePath:
+          type: string
+
+    AIFeedbackResponse:
+      type: object
+      properties:
+        submissionId:
+          type: integer
+        feedback:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feedback'
+
+    GradeInputRequest:
+      type: object
+      properties:
+        score:
+          type: number
+          format: float
+        feedback:
+          type: string
+
+    GradeResponse:
+      type: object
+      properties:
+        gradeId:
+          type: integer
+        message:
+          type: string
+
+    # StudentDashboardResponse:
+    #   allOf: # 'union type' - combines the properties of the two schemas
+    #     - $ref: '#/components/schemas/TeacherDashboardResponse'
+    #     - type: object
+    #       properties:
+    #         upcomingDeadlines:
+    #           type: array
+    #           items:
+    #             $ref: '#/components/schemas/AssignmentSummary'
+
+    StudentDashboardResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        classSummaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentClassSummary'
+    
+    StudentClassSummary:
+      type: object
+      properties:
+        classId:
+          type: integer
+        latestGrade:
+          type: number
+          format: float
+        averageGrade:
+          type: number
+          format: float
+        attendanceRate:
+          type: number
+          format: float
+        upcomingDeadlines:
+          type: integer
+
+    AssignmentDetails:
+      allOf:
+        - $ref: '#/components/schemas/AssignmentSummary'
+        - type: object
+          properties:
+            questions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Question'
+            # content:
+            #   type: string
+            markSchemes:
+              type: array
+              items:
+                $ref: '#/components/schemas/MarkScheme'
+
+    AssignmentSubmissionRequest:
+      type: object
+      properties:
+        textContent:
+          type: string
+        submittedAt:
+          type: string
+          format: date-time
+        files:
+          type: array
+          items:
+            type: string
+            format: binary
+      required:
+        - textContent
+    
+      # type: object
+      # properties:
+      #   textContent:
+      #     type: string
+      #   fileUpload:
+      #     type: string
+      #     format: uri # unique resource identifier for the file
+
+    AssignmentSubmissionResponse:
+      type: object
+      properties:
+        submissionId:
+          type: integer
+        message:
+          type: string
+
+    GradeSummary:
+      type: object
+      properties:
+        assignmentId:
+          type: integer
+        title:
+          type: string
+        score:
+          type: number
+        feedback:
+          type: string
+
+    ClassroomGradeSummary:
+      type: object
+      properties:
+        classroomId:
+          type: integer
+        grades:
+          type: array
+          items:
+            $ref: '#/components/schemas/GradeSummary'
+
+    AssignmentGrade:
+      type: object
+      properties:
+        assignmentId:
+          type: integer
+        gradeDetails:
+          $ref: '#/components/schemas/GradeSummary'
+
+    Question:
+      type: object
+      properties:
+        questionId:
+          type: integer
+        text:
+          type: string
+        order:
+          type: integer
+
+    MarkScheme:
+      type: object
+      properties:
+        questionId:
+          type: integer
+        marks:
+          type: integer
+        criteria:
+          type: string
+
+    Feedback:
+      type: object
+      properties:
+        category:
+          type: string
+        text:
+          type: string
+        start:
+          type: integer
+        end:
+          type: integer
+
+    TeacherProfileResponse: # doesnt need required fields as is a response object
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        bio:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        phoneNumber:
+          type: string
+        profilePicture:
+          type: string
+
+    UpdateTeacherProfileRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        bio:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        phoneNumber:
+          type: string
+        profilePicture:
+          type: string
+          format: binary
+      required:
+        - firstName
+        - lastName
+        - email
+
+    StudentProfileResponse: # doesnt need required fields as is a response object
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        yearGroup:
+          type: string
+        bio:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        phoneNumber:
+          type: string
+        profilePicture:
+          type: string
+
+    UpdateStudentProfileRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        yearGroup:
+          type: string
+        bio:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        phoneNumber:
+          type: string
+        profilePicture:
+          type: string
+          format: binary
+      required:
+        - firstName
+        - lastName
+        - email
+        - yearGroup
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string

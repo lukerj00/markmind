@@ -82,7 +82,8 @@ class StudentAssignmentsAPIView(APIView): # new class as different resource
 
         if course_id:
             queryset = queryset.filter(course__id=course_id) # double underscore for foreign key field (course is a foreign key field on the assignment model, and __ performs a join)
-        # implement is_due filter at some point
+        
+        # implement below is_due filter at some point
         # if is_due:
         #     try:
         #         is_due_date = datetime.strptime(is_due, '%d/%m/%Y').date()
@@ -94,6 +95,7 @@ class StudentAssignmentsAPIView(APIView): # new class as different resource
         serializer = AssignmentSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    # implement below get user method at some point
     # def get(self, request):
     #     # implement - fetch student based on request user (customize as needed)
     #     student = Student.objects.filter(user=request.user).first()
