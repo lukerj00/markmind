@@ -315,7 +315,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AssignmentSummary # AssignmentSummary / AssignmentDetails
+                  $ref: '#/components/schemas/AssignmentSummary' # AssignmentDetails
 
   /teachers/{teacherId}/assignments/{assignmentId}/submissions: # eg /teachers/123/assignments/456/submissions?page=2&pageSize=10 ( {url_path}?{query_key}={query_value}&{query_key}={query_value} )
     get:
@@ -615,7 +615,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AssignmentDetails'
+                  $ref: '#/components/schemas/AssignmentSummary' # Summary not Details
 
   /students/{studentId}/assignments/{assignmentId}:
     get:
@@ -803,21 +803,32 @@ components:
      scheme: bearer # ie bearer token should be included in the Authorization header using the format: Bearer <token>
 
   schemas:
-    User:
+    UserRegistration: # POST request for new user
      type: object
      properties:
        userId:
          type: integer
+       title:
+         type: string # or `enum`
        firstName:
          type: string
        lastName:
          type: string
        email:
          type: string
+       password:
+         type: string # note HASHED
        role:
          type: string
+         enum: [student, teacher]
+       required:
+       - firstName
+       - lastName
+       - email
+       - password
+       - role
     
-    UserRegistrationResponse:
+    UserRegistrationResponse: # 201 response for registration
      type: object
      properties:
        firstName:
@@ -831,14 +842,8 @@ components:
        role:
          type: string
          enum: [student, teacher]
-     required:
-       - firstName
-       - lastName
-       - email
-       - password
-       - role
 
-    UserLogin:
+    UserLogin: # POST request to authenticate user/generate login token
      type: object
      properties:
        email:
@@ -849,7 +854,7 @@ components:
        - email
        - password
 
-    AuthenticationResponse:
+    AuthenticationResponse: # 200 response to authentification
      type: object
      properties:
        token:
@@ -857,7 +862,7 @@ components:
        userId:
          type: integer
 
-    ChangePasswordResponse:
+    ChangePasswordResponse: # POST request to change pw
      type: object
      properties:
        oldPassword:
@@ -868,7 +873,7 @@ components:
        - oldPassword
        - newPassword
 
-    TeacherDashboardResponse:
+    TeacherDashboardResponse: # 200 response to retrieving teacher dashboard data
       type: object
       properties:
         notifications:
@@ -880,7 +885,7 @@ components:
           items:
             $ref: '#/components/schemas/TeacherClassSummary'
 
-    Notification:
+    Notification: # (used in Teacher/Student DashboardResponse objects)
       type: object
       properties:
         notificationId:
@@ -893,7 +898,7 @@ components:
         isRead:
           type: boolean
 
-    TeacherClassSummary:
+    TeacherClassSummary: # (used in TeacherDashboardResponse object)
       type: object
       properties:
         classId:
@@ -913,15 +918,15 @@ components:
         lateAssignments:
           type: integer
 
-    AssignmentCreationFieldsResponse:
-      type: object
-      properties:
-        fields:
-          type: array
-          items:
-            type: string
+    # AssignmentCreationFieldsResponse:
+    #   type: object
+    #   properties:
+    #     fields:
+    #       type: array
+    #       items:
+    #         type: string
 
-    NewAssignmentRequest:
+    NewAssignmentRequest: # POST request to submit new assignment
       type: object
       properties:
         title:
@@ -936,34 +941,34 @@ components:
           items:
             $ref: '#/components/schemas/AssignmentDetails'
 
-    UpdateAssignmentRequest:
-      type: object
-      properties:
-        assignmentId:
-          type: integer
-        title:
-          type: string
-        description:
-          type: string
-        dueDate:
-          type: string
-          format: date-time
-        questions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Question'
-      required:
-        - assignmentId
+    # UpdateAssignmentRequest: 
+    #   type: object
+    #   properties:
+    #     assignmentId:
+    #       type: integer
+    #     title:
+    #       type: string
+    #     description:
+    #       type: string
+    #     dueDate:
+    #       type: string
+    #       format: date-time
+    #     questions:
+    #       type: array
+    #       items:
+    #         $ref: '#/components/schemas/Question'
+    #   required:
+    #     - assignmentId
 
-    AssignmentResponse:
+    AssignmentResponse: # 200 response to creating assignment
       type: object
       properties:
-        assignmentId:
+        assignmentId: # useful for teacher to reference
           type: integer
         message:
           type: string
 
-    ClassroomSummary:
+    ClassroomSummary: # 200 response to requesting list of teacher or student classrooms
       type: object
       properties:
         classroomId:
@@ -973,7 +978,7 @@ components:
         yearGroup:
           type: string
 
-    AssignmentSummary:
+    AssignmentSummary: # 200 response to teacher/student request to retrieve list of assignments, and forms part of AssignmentDetails (metadata - id, title, due date)
       type: object
       properties:
         assignmentId:
@@ -1051,7 +1056,7 @@ components:
     #           items:
     #             $ref: '#/components/schemas/AssignmentSummary'
 
-    StudentDashboardResponse:
+    StudentDashboardResponse: # 200 response for retrieving student dashboard data
       type: object
       properties:
         notifications:
@@ -1063,7 +1068,7 @@ components:
           items:
             $ref: '#/components/schemas/StudentClassSummary'
     
-    StudentClassSummary:
+    StudentClassSummary: # (used in StudentDashboardResponse object)
       type: object
       properties:
         classId:
