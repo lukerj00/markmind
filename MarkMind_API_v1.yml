@@ -989,7 +989,7 @@ components:
           type: string
           format: date
 
-    SubmissionSummary:
+    SubmissionSummary: # 200 response to teacher requesting list of student submissions (note decision between using array-containing object vs array of objects as response, ie StudentDashboardResponse)
       type: object
       properties:
         submissionId:
