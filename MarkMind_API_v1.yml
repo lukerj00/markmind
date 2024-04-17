@@ -1003,19 +1003,24 @@ components:
         #   type: string
         #   enum: [submitted, not_submitted, late]
 
-    SubmissionDetailsResponse:
-      type: object
-      properties:
-        # submissionId:
-        #   type: integer
-        assignmentId:
-          type: integer
-        studentId:
-          type: integer
-        content:
-          type: string
-        # filePath: # assume text-based for mvp
-        #   type: string
+    SubmissionDetailsResponse: # 200 response to teacher requesting to view details (questions, answers, teacher/AI feedback) for an assignment
+      allOf:
+        type: object
+          array of $ref SubmissionSummary
+          array of $ref TeacherFeedback (grades/overall); AIFeedbackResponse
+          array of questions/answers...
+      # type: object
+      # properties:
+      #   # submissionId:
+      #   #   type: integer
+      #   assignmentId:
+      #     type: integer
+      #   studentId:
+      #     type: integer
+      #   content:
+      #     type: string
+      #   # filePath: # assume text-based for mvp
+      #   #   type: string
 
     AIFeedbackResponse:
       type: object
