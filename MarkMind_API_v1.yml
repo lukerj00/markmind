@@ -52,7 +52,7 @@ paths:
    post:
      summary: Change user's password
      security:
-       - bearerAuth: []
+       - bearerAuth: [] # arbitrary string denoting bearer token authentication (random string representing user's authorization to access protected resources), included in HTTP header (form 'Authorization: Bearer <access-token>')
      requestBody:
        required: true
        content:
@@ -161,7 +161,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TeacherDashboardResponse'
 
-  # /teachers/{teacherId}/assignments/create: # rethink for mvp; can do statically on frontend
+  # /teachers/{teacherId}/assignments/create: # rethink for mvp - can do statically on frontend
   #   get:
   #     summary: Get the assignment creation page
   #     description: Retrieve fields necessary for creating a new assignment.
@@ -208,7 +208,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssignmentResponse'
-    # put: # rethink for mvp; need form/get to specify assignment
+    # put: # rethink for mvp - need form/get to specify assignment?
     #   summary: Update an existing assignment
     #   security:
     #     - bearerAuth: []
@@ -317,6 +317,43 @@ paths:
                 items:
                   $ref: '#/components/schemas/AssignmentSummary' # AssignmentDetails
 
+  /teachers/{teacherId}/assignments/{assignmentId}:
+    get:
+      summary: view and edit assignment details
+      description: Retrieve details of a specific assignment, then view and edit assignment details.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Assignment details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherAssignmentDetails'
+        '404':
+          description: Assignment not found
+  
+    put:
+      summary: Update assignment details
+      description: Modify the details of a specific assignment.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeacherAssignmentDetails'
+      responses:
+        '200':
+          description: Assignment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherAssignmentDetails'
+        '404':
+          description: Assignment not found
+             
   /teachers/{teacherId}/assignments/{assignmentId}/submissions: # eg /teachers/123/assignments/456/submissions?page=2&pageSize=10 ( {url_path}?{query_key}={query_value}&{query_key}={query_value} )
     get:
       summary: View submissions for an assignment
@@ -324,18 +361,18 @@ paths:
       security:
        - bearerAuth: []
       parameters:
-        - in: path
-          name: teacherId
-          required: true
-          schema:
-            type: integer
-          description: Unique identifier of the teacher
-        - in: path
-          name: assignmentId
-          required: true
-          schema:
-            type: integer
-          description: Unique identifier of the assignment
+        # - in: path # not needed as specified in endpoint path
+        #   name: teacherId
+        #   required: true
+        #   schema:
+        #     type: integer
+        #   description: Unique identifier of the teacher
+        # - in: path
+        #   name: assignmentId
+        #   required: true
+        #   schema:
+        #     type: integer
+        #   description: Unique identifier of the assignment
         - in: query
           name: page
           schema:
@@ -346,6 +383,7 @@ paths:
           name: pageSize
           schema:
             type: integer
+            enum: [10, 25, 50, 100]
             default: 10
           description: Number of submissions to retrieve per page
       responses:
@@ -382,26 +420,13 @@ paths:
       description: Retrieve details of a student's submission including any AI-generated feedback.
       security:
        - bearerAuth: []
-      parameters:
-        - in: path
-          name: teacherId
-          required: true
-          schema:
-            type: integer
-          description: Unique identifier of the teacher
-        - in: path
-          name: submissionId
-          required: true
-          schema:
-            type: integer
-          description: Unique identifier of the submission
       responses:
         '200':
           description: Submission details retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SubmissionDetailsResponse'
+                $ref: '#/components/schemas/TeacherSubmissionDetails'
 
   /teachers/{teacherId}/submissions/{submissionId}/feedback:
     get:
@@ -410,31 +435,25 @@ paths:
       security:
        - bearerAuth: []
       parameters:
-        - in: path
-          name: teacherId
-          required: true
-          schema:
-            type: integer
-          description: Unique identifier of the teacher
-        - in: path
-          name: submissionId
-          required: true
-          schema:            
-            type: integer
-          description: Unique identifier of the submission
+        - in: query
+            name: question
+            required: true
+            schema:
+              type: string
+            description: question to filter by
         - in: query
           name: category
           required: true
           schema:
             type: string
-          description: The feedback category to filter by, e.g., punctuation, grammar, etc.
+          description: feedback category to filter by (e.g., spelling/punctuation, formatting, etc.)
       responses:
         '200':
           description: Feedback retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AIFeedbackResponse'
+                $ref: '#/components/schemas/aiFeedback'
         '404':
           description: Feedback not found
           content:
@@ -978,7 +997,7 @@ components:
         yearGroup:
           type: string
 
-    AssignmentSummary: # 200 response to teacher/student request to retrieve list of assignments, and forms part of AssignmentDetails (metadata - id, title, due date)
+    AssignmentSummary: # 200 response to teacher/student request to retrieve list of assignments, and forms part of AssignmentDetails metadata
       type: object
       properties:
         assignmentId:
@@ -989,7 +1008,7 @@ components:
           type: string
           format: date
 
-    SubmissionSummary: # 200 response to teacher requesting list of student submissions (note decision between using array-containing object vs array of objects as response, ie StudentDashboardResponse)
+    TeacherSubmissionSummary: # 200 response to teacher requesting list of student submissions (note decision between using array-containing object vs array of objects as response, eg StudentDashboardResponse)
       type: object
       properties:
         submissionId:
@@ -999,30 +1018,82 @@ components:
         submittedAt:
           type: string
           format: date-time
-        # status:
+        # status: # can implement with frontend logic ?
         #   type: string
         #   enum: [submitted, not_submitted, late]
 
-    SubmissionDetailsResponse: # 200 response to teacher requesting to view details (questions, answers, teacher/AI feedback) for an assignment
+    TeacherSubmissionDetails: # 200 response to teacher requesting to view details (questions, answers, teacher/AI feedback) for an assignment
       allOf:
-        type: object
-          array of $ref SubmissionSummary
-          array of $ref TeacherFeedback (grades/overall); AIFeedbackResponse
-          array of questions/answers...
-      # type: object
-      # properties:
-      #   # submissionId:
-      #   #   type: integer
-      #   assignmentId:
-      #     type: integer
-      #   studentId:
-      #     type: integer
-      #   content:
-      #     type: string
-      #   # filePath: # assume text-based for mvp
-      #   #   type: string
+        - $ref: '#/components/schemas/TeacherSubmissionSummary'
+        - type: object
+            teacherOverallFeedback:
+              $ref: '#/components/schemas/Feedback'
+        # - $ref: '#/components/schemas/TeacherOverallFeedback' # dont need separate object
+        - type: object # array of question/answer/markscheme/feedback
+            questions:
+              type: array
+              items:
+                $ref: '#/components/schemas/SubmissionQuestion'
 
-    AIFeedbackResponse:
+    SubmissionQuestion:
+      type: object
+      properties:
+        question:
+          $ref: '#/components/schemas/Question'
+        studentAnswer:
+          $ref: '#/components/schemas/Answer'
+        markScheme:
+          $ref: '#/components/schemas/MarkScheme'
+        teacherFeedback:
+          $ref: '#/components/schemas/Feedback'
+        aiFeedback:
+          type: array
+          items:
+            $ref: '#/components/schemas/AIFeedback'
+
+    # TeacherOverallFeedback:
+    #   type: object
+    #   properties:
+    #     text:
+    #       type: string
+    #     # start:
+    #     #   type: integer
+    #     # end:
+    #     #   type: integer
+
+    Question:
+      type: object
+      properties:
+        questionId:
+          type: integer
+        text:
+          type: string
+        order:
+          type: integer
+
+    Answer:
+      type: object
+      properties:
+        answerId:
+          type: integer
+        text:
+          type: string
+        order:
+          type: integer
+
+    MarkScheme:
+      type: object
+      properties:
+        questionId:
+          type: integer
+        marks:
+          type: integer
+        type: array
+        properties:
+          criteria:
+            type: string
+
+    AIFeedback:
       type: object
       properties:
         submissionId:
@@ -1032,6 +1103,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Feedback'
+
+    Feedback:
+      type: object
+      properties:
+        feedbackText:
+          type: string
 
     GradeInputRequest:
       type: object
@@ -1051,46 +1128,17 @@ components:
         message:
           type: string
 
-    # StudentDashboardResponse:
-    #   allOf: # 'union type' - combines the properties of the two schemas
-    #     - $ref: '#/components/schemas/TeacherDashboardResponse'
-    #     - type: object
-    #       properties:
-    #         upcomingDeadlines:
-    #           type: array
-    #           items:
-    #             $ref: '#/components/schemas/AssignmentSummary'
+    StudentAssignmentDetails:
+      allOf:
+        - $ref: '#/components/schemas/AssignmentSummary'
+        - type: object
+          properties:
+            questions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Question'
 
-    StudentDashboardResponse: # 200 response for retrieving student dashboard data
-      type: object
-      properties:
-        notifications:
-          type: array
-          items:
-            $ref: '#/components/schemas/Notification'
-        classSummaries:
-          type: array
-          items:
-            $ref: '#/components/schemas/StudentClassSummary'
-    
-    StudentClassSummary: # (used in StudentDashboardResponse object)
-      type: object
-      properties:
-        classId:
-          type: integer
-        latestGrade:
-          type: number
-          format: float
-        averageGrade:
-          type: number
-          format: float
-        attendanceRate:
-          type: number
-          format: float
-        upcomingDeadlines:
-          type: integer
-
-    AssignmentDetails:
+    TeacherAssignmentDetails:
       allOf:
         - $ref: '#/components/schemas/AssignmentSummary'
         - type: object
@@ -1165,38 +1213,6 @@ components:
         #   type: integer
         gradeDetails:
           $ref: '#/components/schemas/GradeSummary'
-
-    Question:
-      type: object
-      properties:
-        questionId:
-          type: integer
-        text:
-          type: string
-        order:
-          type: integer
-
-    MarkScheme:
-      type: object
-      properties:
-        questionId:
-          type: integer
-        marks:
-          type: integer
-        criteria:
-          type: string
-
-    Feedback:
-      type: object
-      properties:
-        # category:
-        #   type: string
-        text:
-          type: string
-        # start:
-        #   type: integer
-        # end:
-        #   type: integer
 
     TeacherProfileResponse: # doesnt need required fields as is a response object
       type: object
@@ -1294,3 +1310,32 @@ components:
       properties:
         message:
           type: string
+
+    StudentDashboardResponse: # 200 response for retrieving student dashboard data
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        classSummaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentClassSummary'
+    
+    StudentClassSummary: # (used in StudentDashboardResponse object)
+      type: object
+      properties:
+        classId:
+          type: integer
+        latestGrade:
+          type: number
+          format: float
+        averageGrade:
+          type: number
+          format: float
+        attendanceRate:
+          type: number
+          format: float
+        upcomingDeadlines:
+          type: integer
