@@ -900,8 +900,6 @@ components:
           type: integer
         name:
           type: string
-        yearGroup:
-          type: string
 
     AssignmentSummary: # 200 response to teacher/student request to retrieve list of assignments, and forms part of AssignmentDetails metadata
       type: object
