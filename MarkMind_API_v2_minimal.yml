@@ -29,7 +29,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse
+                $ref: '#/components/schemas/ErrorResponse'
 
   /auth/login:
    post:
@@ -90,7 +90,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TeacherProfile'
+                $ref: '#/components/schemas/TeacherProfileResponse'
         '401':
           description: Unauthorized
           content:
@@ -161,26 +161,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TeacherDashboardResponse'
 
-  # /teachers/{teacherId}/assignments/create: # rethink for mvp - can do statically on frontend
-  #   get:
-  #     summary: Get the assignment creation page
-  #     description: Retrieve fields necessary for creating a new assignment.
-  #     security:
-  #      - bearerAuth: []
-  #     parameters:
-  #       - in: path
-  #         name: teacherId
-  #         required: true
-  #         schema:
-  #           type: integer
-  #         description: Unique identifier of the teacher
-  #     responses:
-  #       '200':
-  #         description: Assignment creation fields retrieved successfully
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/AssignmentCreationFieldsResponse'
+  # (removed endpoint for GET assignment creation form)
 
   /teachers/{teacherId}/assignments:
     post:
@@ -208,62 +189,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssignmentResponse'
-    # put: # rethink for mvp - need form/get to specify assignment?
-    #   summary: Update an existing assignment
-    #   security:
-    #     - bearerAuth: []
-    #   parameters:
-    #     - in: path
-    #       name: teacherId
-    #       required: true
-    #       schema:
-    #         type: integer
-    #       description: Unique identifier of the teacher
-    #   requestBody:
-    #     required: true
-    #     content:
-    #       application/json:
-    #         schema:
-    #           $ref: '#/components/schemas/UpdateAssignmentRequest'
-    #   responses:
-    #     '200':
-    #       description: Assignment updated successfully
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: '#/components/schemas/AssignmentResponse'
-    #     '404':
-    #       description: Assignment not found
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: '#/components/schemas/ErrorResponse'
-    # delete:
-    #   summary: Delete an assignment
-    #   security:
-    #     - bearerAuth: []
-    #   parameters:
-    #     - in: path
-    #       name: teacherId
-    #       required: true
-    #       schema:
-    #         type: integer
-    #       description: Unique identifier of the teacher
-    #     - in: query
-    #       name: assignmentId
-    #       required: true
-    #       schema:
-    #         type: integer
-    #       description: Unique identifier of the assignment to delete
-    #   responses:
-    #     '204':
-    #       description: Assignment deleted successfully
-    #     '404':
-    #       description: Assignment not found
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: '#/components/schemas/ErrorResponse'
+    # (removed PUT functionality to change assignment details)
 
   /teachers/{teacherId}/classrooms:
     get:
@@ -307,15 +233,40 @@ paths:
           schema:
             type: integer
           description: Unique identifier of the classroom
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number of the results to retrieve
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            enum: [10, 25, 50, 100]
+            default: 10
+          description: Number of submissions to retrieve per page
       responses:
         '200':
           description: List of assignments retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AssignmentSummary' # AssignmentDetails
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AssignmentSummary' # AssignmentDetails
+                meta: # pagination metadata info
+                    type: object
+                    properties:
+                      currentPage:
+                        type: integer
+                      totalPages:
+                        type: integer
+                      totalAssignments:
+                        type: integer
 
   /teachers/{teacherId}/assignments/{assignmentId}:
     get:
@@ -332,29 +283,9 @@ paths:
                 $ref: '#/components/schemas/TeacherAssignmentDetails'
         '404':
           description: Assignment not found
-  
-    put:
-      summary: Update assignment details
-      description: Modify the details of a specific assignment.
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TeacherAssignmentDetails'
-      responses:
-        '200':
-          description: Assignment updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TeacherAssignmentDetails'
-        '404':
-          description: Assignment not found
+  # (removed PUT functionality to change assignment details)
              
-  /teachers/{teacherId}/assignments/{assignmentId}/submissions: # eg /teachers/123/assignments/456/submissions?page=2&pageSize=10 ( {url_path}?{query_key}={query_value}&{query_key}={query_value} )
+    /teachers/{teacherId}/assignments/{assignmentId}/submissions: # eg /teachers/123/assignments/456/submissions?page=2&pageSize=10 ( {url_path}?{query_key}={query_value}&{query_key}={query_value} )
     get:
       summary: View submissions for an assignment
       description: Retrieve a paginated list of submissions for a specific assignment.
@@ -386,6 +317,7 @@ paths:
             enum: [10, 25, 50, 100]
             default: 10
           description: Number of submissions to retrieve per page
+      # add PUT functionality (to update assignment before due date) at later stage
       responses:
         '200':
           description: List of submissions retrieved successfully
@@ -431,7 +363,7 @@ paths:
   /teachers/{teacherId}/submissions/{submissionId}/feedback:
     get:
       summary: Get AI-generated feedback for a submission
-      description: Retrieve AI-generated feedback on various categories like punctuation for a submission.
+      description: Retrieve AI-generated feedback on various categories (e.g. spelling/punctuation, formatting, etc.)
       security:
        - bearerAuth: []
       parameters:
@@ -446,14 +378,14 @@ paths:
           required: true
           schema:
             type: string
-          description: feedback category to filter by (e.g., spelling/punctuation, formatting, etc.)
+          description: Feedback category to filter by (e.g. spelling/punctuation, formatting, etc.)
       responses:
         '200':
           description: Feedback retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/aiFeedback'
+                $ref: '#/components/schemas/AIFeedback'
         '404':
           description: Feedback not found
           content:
@@ -463,7 +395,7 @@ paths:
 
   /teachers/{teacherId}/submissions/{submissionId}/grade:
     post:
-      summary: Input final grade and feedback for a submission
+      summary: Grade a submission
       description: Submit final grade and feedback for a student's submission.
       security:
        - bearerAuth: []
@@ -513,7 +445,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StudentProfile'
+                $ref: '#/components/schemas/StudentProfileResponse'
         '401':
           description: Unauthorized
           content:
@@ -721,72 +653,52 @@ paths:
             type: string
           description: Filter grades by assignment title.
         - in: query
-          name: startDate
+          name: classroomName # (match to id on backend?)
           schema:
             type: string
-            format: date
-          description: Filter grades by start date (inclusive).
-        - in: query # maybe remove ?
-          name: endDate
+          description: Filter grades by classroom.
+        - in: query
+          name: endDate # removed filter by start date
           schema:
             type: string
             format: date
           description: Filter grades by end date (inclusive).
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number of the results to retrieve
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            enum: [10, 25, 50, 100]
+            default: 10
+          description: Number of submissions to retrieve per page
       responses:
         '200':
           description: Grades summary retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/GradeSummary'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GradeSummary'
+                  meta: # pagination metadata info
+                    type: object
+                    properties:
+                      currentPage:
+                        type: integer
+                      totalPages:
+                        type: integer
+                      totalGrades:
+                        type: integer
 
-  # /students/{studentId}/classrooms/{classroomId}/grades:
-  #   get:
-  #     summary: View grades for a specific classroom
-  #     description: Retrieve a list of grades for assignments within a specific classroom.
-  #     security:
-  #      - bearerAuth: []
-  #     parameters:
-  #       - in: path
-  #         name: studentId
-  #         required: true
-  #         schema:
-  #           type: integer
-  #         description: Unique identifier of the student
-  #       - in: path
-  #         name: classroomId
-  #         required: true
-  #         schema:
-  #           type: integer
-  #         description: Unique identifier of the classroom
-  #       - in: query
-  #         name: assignmentTitle
-  #         schema:
-  #           type: string
-  #         description: Filter grades by assignment title.
-  #       - in: query
-  #         name: dateAssigned
-  #         schema:
-  #           type: string
-  #           format: date
-  #         description: Filter grades by date assigned (inclusive).
-  #       - in: query
-  #         name: dueDate
-  #         schema:
-  #           type: string
-  #           format: date
-  #         description: Filter grades by due date (inclusive).
-  #     responses:
-  #       '200':
-  #         description: Classroom grades retrieved successfully
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: array
-  #               items:
-  #                 $ref: '#/components/schemas/ClassroomGradeSummary'
+# (removed endpoint for teacher to view grades for specific classroom)
 
   /students/{studentId}/assignments/{assignmentId}/grade:
     get:
@@ -816,12 +728,16 @@ paths:
                 $ref: '#/components/schemas/AssignmentGrade'
 
 components:
+  # security scheme
   securitySchemes:
    bearerAuth:
      type: http
      scheme: bearer # ie bearer token should be included in the Authorization header using the format: Bearer <token>
 
   schemas:
+    
+    # user registration/login/authentification stuff
+
     UserRegistration: # POST request for new user
      type: object
      properties:
@@ -873,14 +789,6 @@ components:
        - email
        - password
 
-    AuthenticationResponse: # 200 response to authentification
-     type: object
-     properties:
-       token:
-         type: string
-       userId:
-         type: integer
-
     ChangePasswordResponse: # POST request to change pw
      type: object
      properties:
@@ -892,58 +800,15 @@ components:
        - oldPassword
        - newPassword
 
-    TeacherDashboardResponse: # 200 response to retrieving teacher dashboard data
-      type: object
-      properties:
-        notifications:
-          type: array
-          items:
-            $ref: '#/components/schemas/Notification'
-        classSummaries:
-          type: array
-          items:
-            $ref: '#/components/schemas/TeacherClassSummary'
+    AuthenticationResponse: # 200 response to authentification
+     type: object
+     properties:
+       token:
+         type: string
+       userId:
+         type: integer
 
-    Notification: # (used in Teacher/Student DashboardResponse objects)
-      type: object
-      properties:
-        notificationId:
-          type: integer
-        message:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-        isRead:
-          type: boolean
-
-    TeacherClassSummary: # (used in TeacherDashboardResponse object)
-      type: object
-      properties:
-        classId:
-          type: integer
-        averageGrade:
-          type: number
-          format: float
-        totalStudents:
-          type: integer
-        totalSubmissions:
-          type: integer
-        recentSubmissions:
-          type: integer
-        attendanceRate:
-          type: number
-          format: float
-        lateAssignments:
-          type: integer
-
-    # AssignmentCreationFieldsResponse:
-    #   type: object
-    #   properties:
-    #     fields:
-    #       type: array
-    #       items:
-    #         type: string
+    # teacher stuff
 
     NewAssignmentRequest: # POST request to submit new assignment
       type: object
@@ -959,25 +824,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AssignmentDetails'
-
-    # UpdateAssignmentRequest: 
-    #   type: object
-    #   properties:
-    #     assignmentId:
-    #       type: integer
-    #     title:
-    #       type: string
-    #     description:
-    #       type: string
-    #     dueDate:
-    #       type: string
-    #       format: date-time
-    #     questions:
-    #       type: array
-    #       items:
-    #         $ref: '#/components/schemas/Question'
-    #   required:
-    #     - assignmentId
 
     AssignmentResponse: # 200 response to creating assignment
       type: object
@@ -1035,7 +881,7 @@ components:
               items:
                 $ref: '#/components/schemas/SubmissionQuestion'
 
-    SubmissionQuestion:
+    SubmissionQuestion: # (used in TeacherSubmissionDetails object)
       type: object
       properties:
         question:
@@ -1045,21 +891,107 @@ components:
         markScheme:
           $ref: '#/components/schemas/MarkScheme'
         teacherFeedback:
-          $ref: '#/components/schemas/Feedback'
+          $ref: '#/components/schemas/FeedbackItem'
         aiFeedback:
+          $ref: '#/components/schemas/AIFeedback'
+
+    # student stuff 
+    # remember to include file upload
+    
+    AssignmentSubmissionRequest: # POST request to submit assignment
+      type: object
+      properties:
+        answers:
           type: array
           items:
-            $ref: '#/components/schemas/AIFeedback'
+            $ref: '#/components/schemas/Answer'
+        files:
+          type: array
+          items:
+            type: string
+            
 
-    # TeacherOverallFeedback:
-    #   type: object
-    #   properties:
-    #     text:
-    #       type: string
-    #     # start:
-    #     #   type: integer
-    #     # end:
-    #     #   type: integer
+    AssignmentSubmissionResponse: # 201 response to submitting assignment
+      type: object
+      properties:
+        submissionId:
+          type: integer
+        message:
+          type: string
+        status:
+          type: string
+          enum: [on_time, late]
+
+    GradeInputRequest: # POST request to grade a submission
+      type: object
+      properties:
+        overallFeedback:
+          $ref: '#/components/schemas/FeedbackItem'
+        questionFeedback:
+          type: array
+          items:
+            type: object
+            properties:
+              teacherFeedback:
+                $ref: '#/components/schemas/FeedbackItem'
+              aiFeedback:
+                $ref: '#/components/schemas/AIFeedback'
+
+    GradeResponse: # 200 response to grading a submission
+      type: object
+      properties:
+        # gradeId:
+        #   type: integer
+        message:
+          type: string
+
+    StudentAssignmentDetails:
+      allOf:
+        - $ref: '#/components/schemas/AssignmentSummary'
+        - type: object
+          properties:
+            questions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Question'
+
+    TeacherAssignmentDetails: # 200 response to teacher requesting to view/edit assignment
+      allOf:
+        - $ref: '#/components/schemas/AssignmentSummary'
+        - type: object
+          properties:
+            questions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Question'
+            # content:
+            #   type: string
+            markSchemes:
+              type: array
+              items:
+                $ref: '#/components/schemas/MarkScheme'
+
+    GradeSummary: # refactor to include answers....
+      type: object
+      properties:
+        assignmentId:
+          type: integer
+        title:
+          type: string
+        score:
+          type: number
+        feedback:
+          type: string
+
+    AssignmentGrade:
+      type: object
+      properties:
+        # assignmentId: # unecessary
+        #   type: integer
+        gradeDetails:
+          $ref: '#/components/schemas/GradeSummary'
+
+    # shared teacher/student components
 
     Question:
       type: object
@@ -1099,8 +1031,7 @@ components:
         submissionId:
           type: integer
         feedback:
-          # type: string
-          type: array
+          type: array # string
           items:
             $ref: '#/components/schemas/FeedbackItem'
 
@@ -1109,110 +1040,10 @@ components:
       properties:
         feedbackText:
           type: string
-
-    GradeInputRequest:
-      type: object
-      properties:
-        score:
-          type: float
-          # type: number
-          # format: float
-        feedback:
-          type: string
-
-    GradeResponse:
-      type: object
-      properties:
-        # gradeId:
-        #   type: integer
-        message:
-          type: string
-
-    StudentAssignmentDetails:
-      allOf:
-        - $ref: '#/components/schemas/AssignmentSummary'
-        - type: object
-          properties:
-            questions:
-              type: array
-              items:
-                $ref: '#/components/schemas/Question'
-
-    TeacherAssignmentDetails:
-      allOf:
-        - $ref: '#/components/schemas/AssignmentSummary'
-        - type: object
-          properties:
-            questions:
-              type: array
-              items:
-                $ref: '#/components/schemas/Question'
-            # content:
-            #   type: string
-            markSchemes:
-              type: array
-              items:
-                $ref: '#/components/schemas/MarkScheme'
-
-    # AssignmentSubmissionRequest: # refactor to be array of <submission__question_> etc and remove submittedAt
-    #   type: object
-    #   properties:
-    #     textContent:
-    #       type: string
-    #     submittedAt: # do server side
-    #       type: string
-    #       format: date-time
-    #     files:
-    #       type: array
-    #       items:
-    #         type: string
-    #         format: binary
-    
-      # type: object
-      # properties:
-      #   textContent:
-      #     type: string
-      #   fileUpload:
-      #     type: string
-      #     format: uri # unique resource identifier for the file
-
-    # AssignmentSubmissionResponse: # implement on frontend, edit to not return payload
-    #   type: object
-    #   properties:
-    #     submissionId:
-    #       type: integer
-    #     message:
-    #       type: string
-
-    GradeSummary: # refactor to include answers....
-      type: object
-      properties:
-        assignmentId:
+        Mark:
           type: integer
-        title:
-          type: string
-        score:
-          type: number
-        feedback:
-          type: string
 
-    # ClassroomGradeSummary: # forget abt if not implementing endpoint
-    #   type: object
-    #   properties:
-    #     classroomId:
-    #       type: integer
-    #     grades:
-    #       type: array
-    #       items:
-    #         $ref: '#/components/schemas/GradeSummary'
-
-    AssignmentGrade:
-      type: object
-      properties:
-        # assignmentId: # unecessary
-        #   type: integer
-        gradeDetails:
-          $ref: '#/components/schemas/GradeSummary'
+    # profile stuff
 
     TeacherProfileResponse: # doesnt need required fields as is a response object
       type: object
@@ -1305,12 +1136,6 @@ components:
         - email
         - yearGroup
 
-    ErrorResponse:
-      type: object
-      properties:
-        message:
-          type: string
-
     StudentDashboardResponse: # 200 response for retrieving student dashboard data
       type: object
       properties:
@@ -1339,3 +1164,11 @@ components:
           format: float
         upcomingDeadlines:
           type: integer
+
+    # misc
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
