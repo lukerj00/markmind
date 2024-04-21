@@ -883,7 +883,7 @@ components:
         assignmentDetails:
           type: array
           items:
-            $ref: '#/components/schemas/AssignmentDetails'
+            $ref: '#/components/schemas/SubmitAssignmentDetails'
 
     AssignmentResponse: # 200 response to creating assignment
       type: object
