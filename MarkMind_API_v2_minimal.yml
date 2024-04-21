@@ -8,6 +8,7 @@ servers:
   - url: https://api.markmind_url.com/
 
 paths:
+
   /auth/register:
    post:
    - in: header
@@ -84,6 +85,8 @@ paths:
       responses:
         '200':
           description: Logout successful
+
+  # teacher endpoints
   
   /teachers/{teacherId}/profile:
     get:
@@ -130,7 +133,7 @@ paths:
     #   requestBody:
     #     required: true
     #     content:
-    #       multipart/form-data: # application/json:
+    #       multipart/form-data: # multipart-payload, eg for submitting form data that includes file uploads
     #         schema:
     #           $ref: '#/components/schemas/UpdateTeacherProfileRequest'
     #   responses:
@@ -194,14 +197,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewAssignmentRequest'
+              $ref: '#/components/schemas/SubmitAssignmentRequest'
       responses:
         '201':
           description: Assignment created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssignmentResponse'
+                $ref: '#/components/schemas/SubmitAssignmentResponse'
     # (removed PUT functionality to change assignment details)
 
   /teachers/{teacherId}/classrooms:
@@ -230,7 +233,7 @@ paths:
   /teachers/{teacherId}/classrooms/{classroomId}/assignments:
     get:
       summary: View assignments for a classroom
-      description: Retrieve a list of assignments for a specific classroom.
+      description: Retrieve a list of assignments created for a specific classroom.
       security:
        - bearerAuth: []
       parameters:
@@ -270,7 +273,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/AssignmentSummary' # AssignmentDetails
+                      $ref: '#/components/schemas/AssignmentSummary'
                   meta: # pagination metadata
                       $ref: '#/components/schemas/PaginationMeta'
 
@@ -291,7 +294,7 @@ paths:
           description: Assignment not found
   # (removed PUT functionality to change assignment details)
              
-    /teachers/{teacherId}/assignments/{assignmentId}/submissions: # eg /teachers/123/assignments/456/submissions?page=2&pageSize=10 ( {url_path}?{query_key}={query_value}&{query_key}={query_value} )
+  /teachers/{teacherId}/assignments/{assignmentId}/submissions: # eg /teachers/123/assignments/456/submissions?page=2&pageSize=10 ( {url_path}?{query_key}={query_value}&{query_key}={query_value} )
     get:
       summary: View submissions for an assignment
       description: Retrieve a paginated list of submissions for a specific assignment.
@@ -335,7 +338,7 @@ paths:
                   data:
                     type: array # array of SubmissionSummary objects
                     items:
-                      $ref: '#/components/schemas/SubmissionSummary'
+                      $ref: '#/components/schemas/TeacherSubmissionSummary'
                   meta: # pagination metadata info
                     $ref: '#/components/schemas/PaginationMeta'
         '400':
@@ -425,7 +428,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/GradeResponse'
 
-  # Student stuff
+  # student endpoints
+
   /students/{studentId}/profile:
     get:
       summary: Get student profile
@@ -471,7 +475,7 @@ paths:
     #   requestBody:
     #     required: true
     #     content:
-    #       multipart/form-data: # 'multipart-payload, eg for submitting form data that includes file uploads'
+    #       multipart/form-data: # multipart-payload, eg for submitting form data that includes file uploads
     #         schema:
     #           $ref: '#/components/schemas/UpdateStudentProfileRequest'
     #   responses:
@@ -565,7 +569,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AssignmentSummary' # Summary not Details
+                  $ref: '#/components/schemas/AssignmentSummary'
 
   /students/{studentId}/assignments/{assignmentId}:
     get:
@@ -616,7 +620,7 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data: # application/json:
+          multipart/form-data: # multipart-payload, eg for submitting form data that includes file uploads
             schema:
               $ref: '#/components/schemas/AssignmentSubmissionRequest'
       responses:
@@ -717,7 +721,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssignmentGrade'
+                $ref: '#/components/schemas/AssignmentGradeRequest'
 
 components:
   # security scheme
@@ -727,7 +731,6 @@ components:
      scheme: bearer # ie bearer token should be included in the Authorization header using the format: Bearer <token>
 
   schemas:
-    
     # user registration/login/authentification stuff
 
     UserRegistration: # POST request for new user. later add in bio/DOB/phone no/profile pic
@@ -870,7 +873,7 @@ components:
 
     # teacher stuff
 
-    NewAssignmentRequest: # POST request to submit new assignment
+    SubmitAssignmentRequest: # POST request to submit new assignment
       type: object
       properties:
         title:
@@ -883,9 +886,9 @@ components:
         assignmentDetails:
           type: array
           items:
-            $ref: '#/components/schemas/SubmitAssignmentDetails'
+            $ref: '#/components/schemas/TeacherAssignmentDetails'
 
-    AssignmentResponse: # 200 response to creating assignment
+    SubmitAssignmentResponse: # 200 response to creating assignment
       type: object
       properties:
         assignmentId: # useful for teacher to reference
@@ -893,13 +896,13 @@ components:
         message:
           type: string
 
-    ClassroomSummary: # 200 response to requesting list of teacher or student classrooms
+    ClassroomSummary: # 200 response to teacher/student requesting list of classrooms
       type: object
       properties:
         classroomId:
           type: integer
         name:
-          type: string
+          type: string # for mvp assume contains class/year name as appropriate (Y11 History, etc)
 
     AssignmentSummary: # 200 response to teacher/student request to retrieve list of assignments, and forms part of AssignmentDetails metadata
       type: object
@@ -938,6 +941,9 @@ components:
         submittedAt:
           type: string
           format: date-time
+        # overallGrade: # add later/not required for MVP
+        #   type: number
+        #   format: float
         # status: # implement with frontend logic ?
         #   type: string
         #   enum: [submitted, not_submitted, late]
@@ -952,9 +958,9 @@ components:
             questions:
               type: array
               items:
-                $ref: '#/components/schemas/SubmissionQuestion'
+                $ref: '#/components/schemas/SubmissionQuestionDetails'
 
-    SubmissionQuestion: # (used in TeacherSubmissionDetails object)
+    SubmissionQuestionDetails: # (used in TeacherSubmissionDetails object)
       type: object
       properties:
         question:
@@ -1038,7 +1044,7 @@ components:
         feedback:
           type: string
 
-    AssignmentGrade: # 200 response to student requesting to view grade/feedback for a specific assignment
+    AssignmentGradeRequest: # 200 response to student requesting to view grade/feedback for a specific assignment
       type: object
       properties:
         gradeSummary:
@@ -1060,7 +1066,7 @@ components:
       properties:
         questionId:
           type: integer
-        text:
+        text: # note this includes both the question context (eg excerpt/source) and the question itself
           type: string
         order:
           type: integer
@@ -1087,11 +1093,11 @@ components:
           criteria:
             type: string
 
-    AIFeedback:
+    AIFeedback: # separate object in case we want to change; for now just an array of FeedbackItem objects
       type: object
       properties:
-        submissionId:
-          type: integer
+        # submissionId: # not needed
+        #   type: integer
         feedback:
           type: array # string
           items:
