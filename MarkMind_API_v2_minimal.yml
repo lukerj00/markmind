@@ -427,6 +427,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GradeResponse'
+        '404':
+          description: Submission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update grade for a submission
+      description: Update the grade and feedback for a student's submission.
+      security:
+       - bearerAuth: []
+      parameters:
+        - in: path
+          name: teacherId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the teacher
+        - in: path
+          name: submissionId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the submission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeInputRequest'
+      responses:
+        '200':
+          description: Grade and feedback updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Submission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # student endpoints
 
@@ -1011,8 +1060,8 @@ components:
             properties:
               teacherFeedback:
                 $ref: '#/components/schemas/FeedbackItem'
-              aiFeedback:
-                $ref: '#/components/schemas/AIFeedback'
+              # aiFeedback:
+              #   $ref: '#/components/schemas/AIFeedback' # need to think if we want this as part of grade input (or is statically generated and associated with submission)
 
     GradeResponse: # 200 response to grading a submission
       type: object
