@@ -10,7 +10,20 @@ servers:
 paths:
   /auth/register:
    post:
+   - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer token for authentication
      summary: Register a new user
+     parameters:
+       - in: header # included as example; omitted from all other endpoints
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer token for authentication
      requestBody:
        required: true
        content:
@@ -48,20 +61,20 @@ paths:
              schema:
                $ref: '#/components/schemas/AuthenticationResponse'
 
-  /auth/change-password:
-   post:
-     summary: Change user's password
-     security:
-       - bearerAuth: [] # arbitrary string denoting bearer token authentication (random string representing user's authorization to access protected resources), included in HTTP header (form 'Authorization: Bearer <access-token>')
-     requestBody:
-       required: true
-       content:
-         application/json:
-           schema:
-             $ref: '#/components/schemas/ChangePasswordResponse'
-     responses:
-       '200':
-         description: Password changed successfully
+  # /auth/change-password: # not required for MVP
+  #  post:
+  #    summary: Change user's password
+  #    security:
+  #      - bearerAuth: [] # arbitrary string denoting bearer token authentication (random string representing user's authorization to access protected resources), included in HTTP header (form 'Authorization: Bearer <access-token>')
+  #    requestBody:
+  #      required: true
+  #      content:
+  #        application/json:
+  #          schema:
+  #            $ref: '#/components/schemas/ChangePasswordResponse'
+  #    responses:
+  #      '200':
+  #        description: Password changed successfully
 
   /auth/logout:
     post:
@@ -103,42 +116,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-    put:
-      summary: Update teacher profile
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: teacherId
-          required: true
-          schema:
-            type: integer
-          description: Unique identifier of the teacher
-      requestBody:
-        required: true
-        content:
-          multipart/form-data: # application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateTeacherProfileRequest'
-      responses:
-        '200':
-          description: Teacher profile updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TeacherProfileResponse'
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Teacher not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+    # put: # ignore for mvp
+    #   summary: Update teacher profile
+    #   security:
+    #     - bearerAuth: []
+    #   parameters:
+    #     - in: path
+    #       name: teacherId
+    #       required: true
+    #       schema:
+    #         type: integer
+    #       description: Unique identifier of the teacher
+    #   requestBody:
+    #     required: true
+    #     content:
+    #       multipart/form-data: # application/json:
+    #         schema:
+    #           $ref: '#/components/schemas/UpdateTeacherProfileRequest'
+    #   responses:
+    #     '200':
+    #       description: Teacher profile updated successfully
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: '#/components/schemas/TeacherProfileResponse'
+    #     '400':
+    #       description: Invalid input
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: '#/components/schemas/ErrorResponse'
+    #     '404':
+    #       description: Teacher not found
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: '#/components/schemas/ErrorResponse'
 
   /teachers/{teacherId}/dashboard:
     get:
@@ -258,15 +271,8 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/AssignmentSummary' # AssignmentDetails
-                meta: # pagination metadata info
-                    type: object
-                    properties:
-                      currentPage:
-                        type: integer
-                      totalPages:
-                        type: integer
-                      totalAssignments:
-                        type: integer
+                  meta: # pagination metadata
+                      $ref: '#/components/schemas/PaginationMeta'
 
   /teachers/{teacherId}/assignments/{assignmentId}:
     get:
@@ -331,14 +337,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/SubmissionSummary'
                   meta: # pagination metadata info
-                    type: object
-                    properties:
-                      currentPage:
-                        type: integer
-                      totalPages:
-                        type: integer
-                      totalSubmissions:
-                        type: integer
+                    $ref: '#/components/schemas/PaginationMeta'
         '400':
           description: Bad request (ie past due date / missing fields)
           content:
@@ -458,42 +457,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-    put:
-      summary: Update student profile
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: studentId
-          required: true
-          schema:
-            type: integer
-          description: Unique identifier of the student
-      requestBody:
-        required: true
-        content:
-          multipart/form-data: # application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateStudentProfileRequest'
-      responses:
-        '200':
-          description: Student profile updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StudentProfileResponse'
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Student not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+    # put: # not required for MVP
+    #   summary: Update student profile
+    #   security:
+    #     - bearerAuth: []
+    #   parameters:
+    #     - in: path
+    #       name: studentId
+    #       required: true
+    #       schema:
+    #         type: integer
+    #       description: Unique identifier of the student
+    #   requestBody:
+    #     required: true
+    #     content:
+    #       multipart/form-data: # 'multipart-payload, eg for submitting form data that includes file uploads'
+    #         schema:
+    #           $ref: '#/components/schemas/UpdateStudentProfileRequest'
+    #   responses:
+    #     '200':
+    #       description: Student profile updated successfully
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: '#/components/schemas/StudentProfileResponse'
+    #     '400':
+    #       description: Invalid input
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: '#/components/schemas/ErrorResponse'
+    #     '404':
+    #       description: Student not found
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: '#/components/schemas/ErrorResponse'
 
   /students/{studentId}/dashboard:
     get:
@@ -593,7 +592,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssignmentDetails'
+                $ref: '#/components/schemas/StudentAssignmentDetails'
 
   /students/{studentId}/assignments/{assignmentId}/submissions:
     post:
@@ -689,14 +688,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/GradeSummary'
                   meta: # pagination metadata info
-                    type: object
-                    properties:
-                      currentPage:
-                        type: integer
-                      totalPages:
-                        type: integer
-                      totalGrades:
-                        type: integer
+                    $ref: '#/components/schemas/PaginationMeta'
 
 # (removed endpoint for teacher to view grades for specific classroom)
 
@@ -738,13 +730,13 @@ components:
     
     # user registration/login/authentification stuff
 
-    UserRegistration: # POST request for new user
+    UserRegistration: # POST request for new user. later add in bio/DOB/phone no/profile pic
      type: object
      properties:
        userId:
          type: integer
        title:
-         type: string # or `enum`
+         type: string # or 'enum'
        firstName:
          type: string
        lastName:
@@ -756,12 +748,12 @@ components:
        role:
          type: string
          enum: [student, teacher]
-       required:
-       - firstName
-       - lastName
-       - email
-       - password
-       - role
+       required: # example required fields, omitted for all other objects for brevity
+        - firstName
+        - lastName
+        - email
+        - password
+        - role
     
     UserRegistrationResponse: # 201 response for registration
      type: object
@@ -785,20 +777,14 @@ components:
          type: string
        password:
          type: string
-     required:
-       - email
-       - password
 
-    ChangePasswordResponse: # POST request to change pw
-     type: object
-     properties:
-       oldPassword:
-         type: string
-       newPassword:
-         type: string
-     required:
-       - oldPassword
-       - newPassword
+    # ChangePasswordResponse: # POST request to change pw
+    #  type: object
+    #  properties:
+    #    oldPassword:
+    #      type: string
+    #    newPassword:
+    #      type: string
 
     AuthenticationResponse: # 200 response to authentification
      type: object
@@ -807,6 +793,80 @@ components:
          type: string
        userId:
          type: integer
+
+    # profile stuff
+
+    TeacherProfileResponse: # 200 response for retrieving teacher profile
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [student, teacher]
+
+    # UpdateTeacherProfileRequest: # PUT request to update teacher profile (not required for MVP)
+    #   type: object
+    #   properties:
+    #     firstName:
+    #       type: string
+    #     lastName:
+    #       type: string
+    #     email:
+    #       type: string
+    #     password:
+    #       type: string
+    #     role:
+    #       type: string
+    #       enum: [student, teacher]
+
+    StudentProfileResponse: # 200 response for retrieving student profile
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [student, teacher]
+
+    # UpdateStudentProfileRequest: # PUT request to update student profile (not required for MVP)
+    #   type: object
+    #   properties:
+    #     firstName:
+    #       type: string
+    #     lastName:
+    #       type: string
+    #     email:
+    #       type: string
+    #     password:
+    #       type: string
+    #     role:
+    #       type: string
+    #       enum: [student, teacher]
+
+    StudentDashboardResponse: # 200 response for retrieving student dashboard data
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        classSummaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentClassSummary'
 
     # teacher stuff
 
@@ -854,6 +914,22 @@ components:
           type: string
           format: date
 
+    TeacherAssignmentDetails: # 200 response to teacher requesting to view/edit assignment
+      allOf:
+        - $ref: '#/components/schemas/AssignmentSummary'
+        - type: object
+          properties:
+            questions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Question'
+            # content:
+            #   type: string
+            markSchemes:
+              type: array
+              items:
+                $ref: '#/components/schemas/MarkScheme'
+
     TeacherSubmissionSummary: # 200 response to teacher requesting list of student submissions (note decision between using array-containing object vs array of objects as response, eg StudentDashboardResponse)
       type: object
       properties:
@@ -864,7 +940,7 @@ components:
         submittedAt:
           type: string
           format: date-time
-        # status: # can implement with frontend logic ?
+        # status: # implement with frontend logic ?
         #   type: string
         #   enum: [submitted, not_submitted, late]
 
@@ -873,8 +949,7 @@ components:
         - $ref: '#/components/schemas/TeacherSubmissionSummary'
         - type: object
             teacherOverallFeedback:
-              $ref: '#/components/schemas/Feedback'
-        # - $ref: '#/components/schemas/TeacherOverallFeedback' # dont need separate object
+              $ref: '#/components/schemas/FeedbackItem'
         - type: object # array of question/answer/markscheme/feedback
             questions:
               type: array
@@ -896,7 +971,6 @@ components:
           $ref: '#/components/schemas/AIFeedback'
 
     # student stuff 
-    # remember to include file upload
     
     AssignmentSubmissionRequest: # POST request to submit assignment
       type: object
@@ -909,7 +983,6 @@ components:
           type: array
           items:
             type: string
-            
 
     AssignmentSubmissionResponse: # 201 response to submitting assignment
       type: object
@@ -945,7 +1018,7 @@ components:
         message:
           type: string
 
-    StudentAssignmentDetails:
+    StudentAssignmentDetails: # 200 response to student requesting to view assignment
       allOf:
         - $ref: '#/components/schemas/AssignmentSummary'
         - type: object
@@ -955,23 +1028,7 @@ components:
               items:
                 $ref: '#/components/schemas/Question'
 
-    TeacherAssignmentDetails: # 200 response to teacher requesting to view/edit assignment
-      allOf:
-        - $ref: '#/components/schemas/AssignmentSummary'
-        - type: object
-          properties:
-            questions:
-              type: array
-              items:
-                $ref: '#/components/schemas/Question'
-            # content:
-            #   type: string
-            markSchemes:
-              type: array
-              items:
-                $ref: '#/components/schemas/MarkScheme'
-
-    GradeSummary: # refactor to include answers....
+    GradeSummary: # 200 response to student/teacher requesting to view grades
       type: object
       properties:
         assignmentId:
@@ -983,13 +1040,20 @@ components:
         feedback:
           type: string
 
-    AssignmentGrade:
+    AssignmentGrade: # 200 response to student requesting to view grade/feedback for a specific assignment
       type: object
       properties:
-        # assignmentId: # unecessary
-        #   type: integer
-        gradeDetails:
+        gradeSummary:
           $ref: '#/components/schemas/GradeSummary'
+        questionFeedback:
+          type: array
+          items:
+            type: object
+            properties:
+              teacherFeedback:
+                $ref: '#/components/schemas/FeedbackItem'
+              aiFeedback:
+                $ref: '#/components/schemas/AIFeedback'
 
     # shared teacher/student components
 
@@ -1042,111 +1106,6 @@ components:
           type: string
         Mark:
           type: integer
-
-    # profile stuff
-
-    TeacherProfileResponse: # doesnt need required fields as is a response object
-      type: object
-      properties:
-        firstName:
-          type: string
-        lastName:
-          type: string
-        email:
-          type: string
-        bio:
-          type: string
-        dateOfBirth:
-          type: string
-          format: date
-        phoneNumber:
-          type: string
-        profilePicture:
-          type: string
-
-    UpdateTeacherProfileRequest:
-      type: object
-      properties:
-        firstName:
-          type: string
-        lastName:
-          type: string
-        email:
-          type: string
-        bio:
-          type: string
-        dateOfBirth:
-          type: string
-          format: date
-        phoneNumber:
-          type: string
-        profilePicture:
-          type: string
-          format: binary
-      required:
-        - firstName
-        - lastName
-        - email
-
-    StudentProfileResponse: # doesnt need required fields as is a response object
-      type: object
-      properties:
-        firstName:
-          type: string
-        lastName:
-          type: string
-        email:
-          type: string
-        yearGroup:
-          type: string
-        bio:
-          type: string
-        dateOfBirth:
-          type: string
-          format: date
-        phoneNumber:
-          type: string
-        profilePicture:
-          type: string
-
-    UpdateStudentProfileRequest:
-      type: object
-      properties:
-        firstName:
-          type: string
-        lastName:
-          type: string
-        email:
-          type: string
-        yearGroup:
-          type: string
-        bio:
-          type: string
-        dateOfBirth:
-          type: string
-          format: date
-        phoneNumber:
-          type: string
-        profilePicture:
-          type: string
-          format: binary
-      required:
-        - firstName
-        - lastName
-        - email
-        - yearGroup
-
-    StudentDashboardResponse: # 200 response for retrieving student dashboard data
-      type: object
-      properties:
-        notifications:
-          type: array
-          items:
-            $ref: '#/components/schemas/Notification'
-        classSummaries:
-          type: array
-          items:
-            $ref: '#/components/schemas/StudentClassSummary'
     
     StudentClassSummary: # (used in StudentDashboardResponse object)
       type: object
@@ -1166,6 +1125,16 @@ components:
           type: integer
 
     # misc
+
+    PaginationMeta:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+        totalPages:
+          type: integer
+        totalItems:
+          type: integer
 
     ErrorResponse:
       type: object
